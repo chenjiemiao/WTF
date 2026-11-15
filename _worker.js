@@ -3,7 +3,13 @@ export default {
     const ZISCUS_ORIGIN = "https://ziscus-comments.chenjiemiao.workers.dev";
     const url = new URL(request.url);
     
-    // 直接转发请求到 Ziscus Worker
+    // 🚨 核心改变：如果是访问首页之类的静态文件，直接放行
+    // 如果请求的是 /comments，我们手动把它转给 Worker
+    if (url.pathname === "/" || url.pathname === "/index.html") {
+       return env.ASSETS.fetch(request);
+    }
+
+    // 其他所有请求（包括 /comments），全部强行转发
     const targetUrl = ZISCUS_ORIGIN + url.pathname + url.search;
     
     const newRequest = new Request(targetUrl, {
