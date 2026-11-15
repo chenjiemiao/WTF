@@ -3,10 +3,11 @@ export default {
     const WALINE_ORIGIN = "https://cjm2.vercel.app";
     const url = new URL(request.url);
     
-    // 第一步：浏览器发 OPTIONS 预检请求时，我们直接在这层拦截并放行，不让它去烦 Vercel！
+    // 🚨 终极拦截：只要是预检请求（OPTIONS），代理直接自己处理！
+    // 绝对不让它去请求 Vercel，这样 Vercel 就不会报 403，浏览器就不会报 CORS 错误。
     if (request.method === "OPTIONS") {
       return new Response(null, {
-        status: 204,
+        status: 200, // 返回 200 状态码，让浏览器放行
         headers: {
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -16,7 +17,7 @@ export default {
       });
     }
 
-    // 第二步：正常的 GET/POST 请求，继续转发给 Vercel
+    // 正常的请求（GET/POST），原样转发给 Vercel
     const targetUrl = WALINE_ORIGIN + url.pathname + url.search;
     const newRequest = new Request(targetUrl, {
       method: request.method,
